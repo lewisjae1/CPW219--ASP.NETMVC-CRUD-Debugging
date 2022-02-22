@@ -29,19 +29,21 @@ namespace CPW219_AspnetMVC_CRUD_Debugging.Controllers
             if (ModelState.IsValid)
             {
                 await _context.AddAsync(product);
-                return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
+                ViewData["Message"] = $"{product.Name} was added successfully!";
+                return View();
             }
             return View(product);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var product = await _context.Product.FindAsync(id);
-            if (product == null)
+            Product productToEdit = await _context.Product.FindAsync(id);
+            if (productToEdit == null)
             {
                 return NotFound();
             }
-            return View(product);
+            return View(productToEdit);
         }
 
         [HttpPost]
@@ -59,23 +61,31 @@ namespace CPW219_AspnetMVC_CRUD_Debugging.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            var product = await _context.Product
-                .FirstOrDefaultAsync(m => m.ProductId == id);
+            Product productToDelete = await _context.Product.FindAsync(id);
 
-            if (product == null)
+            if (productToDelete == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(productToDelete);
         }
 
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Product.FindAsync(id);
-            _context.Product.Remove(product);
+            Product productToDelete = await _context.Product.FindAsync(id);
+
+            if (productToDelete != null)
+            {
+                _context.Product.Remove(productToDelete);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
             return RedirectToAction(nameof(Index));
+            
         }
 
         private bool ProductExists(int id)
